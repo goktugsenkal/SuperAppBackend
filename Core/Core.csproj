@@ -7,8 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Entities\" />
-    <Folder Include="Interfaces\" />
+    <Reference Include="Microsoft.Extensions.Identity.Stores">
+      <HintPath>..\..\..\.nuget\packages\microsoft.extensions.identity.stores\8.0.8\lib\net8.0\Microsoft.Extensions.Identity.Stores.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
