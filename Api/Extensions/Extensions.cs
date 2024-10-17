@@ -22,5 +22,16 @@ public static class Extensions
                     ValidateAudience = false};
             });
         services.AddAuthorization();
+        
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+            {
+                policy.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .WithExposedHeaders("Content-Disposition"); // Add any custom headers you want to expose
+            });
+        });
     }
 }
