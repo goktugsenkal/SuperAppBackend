@@ -1,5 +1,6 @@
 using System.Security.Claims;
-using Core.Entities;
+using Core.Interfaces;
+using Core.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -9,8 +10,7 @@ namespace Api.Controllers;
 
 [ApiController]
 [Route("api/account")]
-[Authorize]
-public class AccountController(UserManager<ApplicationUser> userManager) : ControllerBase
+public class AccountController(UserManager<ApplicationUser> userManager, IEmailService emailService) : ControllerBase
 {
     private readonly IEmailService _emailService = emailService;
     
@@ -24,4 +24,10 @@ public class AccountController(UserManager<ApplicationUser> userManager) : Contr
         return Ok(user);
     }
 
+    [HttpPost("email")]
+    public ActionResult SendTestEmail(EmailDto email)
+    {
+        _emailService.SendEmail(email);
+        return Ok();
+    }
 }
