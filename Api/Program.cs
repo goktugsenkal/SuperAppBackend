@@ -1,9 +1,10 @@
-using Core.Entities;
+using Core.Models;
 using Core.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Api.Extensions;
+using Infrastructure.Services;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +19,7 @@ builder.Services.AddDbContext<DataContext>(opt =>
 builder.Services.AddControllers();
 
 builder.Services.AddScoped<IFuelLogRepository, FuelLogRepository>();
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
