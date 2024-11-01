@@ -12,7 +12,10 @@ namespace Api.Controllers;
 [Authorize]
 public class AccountController(UserManager<ApplicationUser> userManager) : ControllerBase
 {
-    [HttpGet("my-id")]
+    private readonly IEmailService _emailService = emailService;
+    
+    [Authorize]
+    [HttpGet("me")]
     public async Task<ActionResult<string>> GetMe()
     {
         // Get the user ID from the claims principal
