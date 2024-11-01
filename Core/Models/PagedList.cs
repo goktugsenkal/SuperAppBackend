@@ -1,4 +1,4 @@
-namespace Core.Entities;
+namespace Core.Models;
 
 public class PagedList<T>(List<T> items, int pageIndex, int pageSize, int totalPages)
 {

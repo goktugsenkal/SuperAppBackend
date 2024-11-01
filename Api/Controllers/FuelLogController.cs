@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using Api.Dtos;
-using Core.Entities;
+using Core.Models;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Authorization;
