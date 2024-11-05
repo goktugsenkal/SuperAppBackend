@@ -17,7 +17,7 @@ public class EmailService : IEmailService
         _config = config;
     }
 
-    public void SendEmail(EmailDto request)
+    public async Task SendEmail(EmailDto request)
     {
         var email = new MimeMessage();
         email.From.Add(MailboxAddress.Parse("noreply@trackin.life"));
@@ -26,9 +26,9 @@ public class EmailService : IEmailService
         email.Body = new TextPart(TextFormat.Html) { Text = request.Body };
 
         using var smtp = new SmtpClient();
-        smtp.Connect("email-smtp.eu-north-1.amazonaws.com", 587, SecureSocketOptions.StartTls);
-        smtp.Authenticate("AKIAVRUVV4IBUNPT46NY", "BAGoemwGRYj6ruIi0Kr6is2JopozXLsEBCMDBWuiZea3");
-        smtp.Send(email);
-        smtp.Disconnect(true);
+        await smtp.ConnectAsync("email-smtp.eu-north-1.amazonaws.com", 587, SecureSocketOptions.StartTls);
+        await smtp.AuthenticateAsync("AKIAVRUVV4IBUNPT46NY", "BAGoemwGRYj6ruIi0Kr6is2JopozXLsEBCMDBWuiZea3");
+        await smtp.SendAsync(email);
+        await smtp.DisconnectAsync(true);
     }
 }

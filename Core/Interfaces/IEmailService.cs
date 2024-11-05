@@ -4,5 +4,5 @@ namespace Core.Interfaces;
 
 public interface IEmailService
 {
-    void SendEmail(EmailDto email);
+    Task SendEmail(EmailDto email);
 }
