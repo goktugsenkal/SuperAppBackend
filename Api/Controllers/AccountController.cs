@@ -13,8 +13,18 @@ namespace Api.Controllers;
 [Authorize]
 [ApiController]
 [Route("account")]
-public class AccountController(UserManager<ApplicationUser> userManager, IEmailService emailService) : ControllerBase
+public class AccountController
+    (UserManager<ApplicationUser> userManager, IEmailService emailService, IWebHostEnvironment environment) 
+    : ControllerBase
 {
+    [HttpGet("me")]
+    public async Task<ActionResult<string>> GetMe()
+    {
+        var user = await userManager.GetUserAsync(HttpContext.User);
+
+        return Ok(user);
+    }
+    
     [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto registerDto)
@@ -43,16 +53,9 @@ public class AccountController(UserManager<ApplicationUser> userManager, IEmailS
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
+
             return BadRequest(ModelState);
         }
-    }
-    
-    [HttpGet("me")]
-    public async Task<ActionResult<string>> GetMe()
-    {
-        var user = await userManager.GetUserAsync(HttpContext.User);
-
-        return Ok(user);
     }
 
     [HttpPost("request-email-verification")]
@@ -126,15 +129,104 @@ public class AccountController(UserManager<ApplicationUser> userManager, IEmailS
         return BadRequest("Geçersiz ya da süresi geçmiş token.");
     }
 
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(string email)
+    {
+        return Ok();
+    }
+
+    private async Task SendResetPasswordEmailAsync()
+    {
+        
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(string email)
+    {
+        return Ok();
+    }
+
+    [HttpPost("upload-avatar")]
+    public async Task<IActionResult> UploadAvatar(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("Please upload a valid image file.");
+
+        if (!file.ContentType.StartsWith("image/"))
+            return BadRequest("Only image files are allowed.");
+
+        if (file.Length > 5 * 1024 * 1024)
+            return BadRequest("The image size should not exceed 5MB.");
+
+        // Get the current user
+        var user = await userManager.GetUserAsync(HttpContext.User);
+        if (user == null)
+            return Unauthorized();
+
+        var userId = user.Id;
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMddTHHmmss");
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        var fileName = $"{userId}_avatar_{timestamp}{extension}";
+
+        // Check if WebRootPath is null and ensure the directory exists
+        var webRootPath = environment.WebRootPath;
+        if (string.IsNullOrEmpty(webRootPath))
+        {
+            // Initialize it to "wwwroot" directory if WebRootPath is null
+            webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            Directory.CreateDirectory(webRootPath); // Create wwwroot if it doesn’t exist
+        }
+
+        // Set the avatars directory inside wwwroot/uploads/avatars
+        var avatarDirectory = Path.Combine(webRootPath, "uploads", "avatars");
+        Directory.CreateDirectory(avatarDirectory); // Ensure the avatars directory exists
+
+        var filePath = Path.Combine(avatarDirectory, fileName);
+
+        // Save the file to wwwroot/uploads/avatars
+        await using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        // Update user's avatar URL (relative path)
+        user.AvatarImageUrl = $"/uploads/avatars/{fileName}";
+        await userManager.UpdateAsync(user);
+
+        return Ok(new { message = "Profile picture uploaded successfully", avatarUrl = user.AvatarImageUrl });
+    }
+
+    [HttpGet("avatar/{fileName}")]
+    public IActionResult GetAvatar(string fileName)
+    {
+        // Build the file path using WebRootPath
+        var webRootPath = environment.WebRootPath;
+        if (string.IsNullOrEmpty(webRootPath))
+        {
+            webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        }
+        var avatarDirectory = Path.Combine(webRootPath, "uploads", "avatars");
+        var filePath = Path.Combine(avatarDirectory, fileName);
+
+        // Check if file exists
+        if (!System.IO.File.Exists(filePath))
+            return NotFound("Avatar not found");
+
+        // Get the file's content type based on its extension
+        var fileExtension = Path.GetExtension(filePath).ToLowerInvariant();
+        string contentType = fileExtension switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            _ => "application/octet-stream"
+        };
+
+        // Serve the file
+        var fileStream = System.IO.File.OpenRead(filePath);
+        return File(fileStream, contentType);
+    }
+
+
+
 }
-
-
-/*
-
-   [HttpPost("email")]
-   public ActionResult SendTestEmail(EmailDto email)
-   {
-       _emailService.SendEmail(email);
-       return Ok();
-   }
-*/
