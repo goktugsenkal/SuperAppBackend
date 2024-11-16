@@ -70,7 +70,7 @@ public class AccountController
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
         var confirmationLink =
-            Url.Action(nameof(VerifyEmail), "Account", new { userId = user.Id, token }, Request.Scheme);
+            Url.Action(nameof(VerifyEmail), "Account", new { userId = user.Id, token }, Request.Scheme, Request.Host.Value + "/api");
         
         if (string.IsNullOrEmpty(user.Email) || string.IsNullOrEmpty(confirmationLink))
         {
@@ -123,7 +123,8 @@ public class AccountController
         var result = await userManager.ConfirmEmailAsync(user, token);
         if (result.Succeeded)
         {
-            return Ok("E-posta onaylandı.");
+            var filePath = Path.Combine(environment.WebRootPath, "email-verified.html");
+            return PhysicalFile(filePath, "text/html");
         }
 
         return BadRequest("Geçersiz ya da süresi geçmiş token.");
